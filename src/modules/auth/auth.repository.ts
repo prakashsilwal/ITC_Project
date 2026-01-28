@@ -2,8 +2,13 @@ import { User, UserRole } from '@prisma/client';
 import { prisma } from '../../config/database';
 
 export interface CreateUserData {
+  firstName: string;
+  lastName: string;
   email: string;
   passwordHash: string;
+  country: string;
+  countryCode: string;
+  phoneNumber: string;
   role?: UserRole;
 }
 
@@ -16,11 +21,24 @@ export class AuthRepository {
     });
   }
 
+  async findUserById(id: string): Promise<User | null> {
+    return prisma.user.findUnique({
+      where: {
+        id,
+      },
+    });
+  }
+
   async createUser(data: CreateUserData): Promise<User> {
     return prisma.user.create({
       data: {
+        firstName: data.firstName,
+        lastName: data.lastName,
         email: data.email.toLowerCase().trim(),
         passwordHash: data.passwordHash,
+        country: data.country,
+        countryCode: data.countryCode,
+        phoneNumber: data.phoneNumber,
         role: data.role ?? UserRole.USER,
       },
     });

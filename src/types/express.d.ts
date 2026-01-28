@@ -4,6 +4,11 @@ declare global {
   namespace Express {
     interface Request {
       validatedData?: unknown;
+      user?: {
+        userId: string;
+        email: string;
+        role: string;
+      };
     }
   }
 }
