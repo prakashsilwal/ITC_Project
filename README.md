@@ -111,20 +111,7 @@ npm run db:generate
 npm run db:push
 ```
 
-### 7. Create Admin User (Seed Database)
-
-```bash
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/itc_db?schema=public" npm run db:seed
-```
-
-This creates an initial admin user with:
-- **Email**: `admin@itc.com`
-- **Password**: `Admin123!@#`
-- **Role**: `ADMIN`
-
-**IMPORTANT**: Change the admin password after first login!
-
-### 8. Start the Development Server
+### 7. Start the Development Server
 
 ```bash
 npm run dev
@@ -310,27 +297,6 @@ Error Response (401 - Unauthorized):
 }
 ```
 
-## User Roles
-
-The system supports two user roles:
-
-- **USER**: Regular users created via the signup endpoint
-- **ADMIN**: Administrators created via the database seed script
-
-### Creating Admin Users
-
-Admin users are created using the database seed script:
-
-```bash
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/itc_db?schema=public" npm run db:seed
-```
-
-Default admin credentials:
-- Email: `admin@itc.com`
-- Password: `Admin123!@#`
-
-**IMPORTANT**: Change the admin password immediately after first login!
-
 ## Password Policy
 
 The signup endpoint enforces strict password requirements:
@@ -372,7 +338,6 @@ npm start            # Start production server
 npm run db:generate  # Generate Prisma client
 npm run db:migrate   # Run database migrations
 npm run db:push      # Push schema changes without migration
-npm run db:seed      # Seed database with initial admin user
 npm run db:studio    # Open Prisma Studio (database GUI)
 npm run lint         # Run ESLint
 npm run format       # Format code with Prettier
