@@ -4,6 +4,7 @@ import cors from 'cors';
 import pinoHttp from 'pino-http';
 import pino from 'pino';
 import authRoutes from './modules/auth/auth.routes';
+import userRoutes from './modules/user/user.routes';
 import { errorHandler, notFoundHandler } from './middleware/error';
 import { env } from './config/env';
 
@@ -81,6 +82,7 @@ export function createApp(): Application {
   });
 
   app.use('/api/v1/auth', authRoutes);
+  app.use('/api/v1/users', userRoutes);
 
   app.use(notFoundHandler);
 

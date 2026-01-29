@@ -80,8 +80,10 @@ The `.env` file should contain:
 ```env
 NODE_ENV=development
 PORT=3000
-DATABASE_URL=postgresql://itc_user:itc_password@localhost:5432/itc_db
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/itc_db?schema=public
 BCRYPT_ROUNDS=12
+JWT_SECRET=your-super-secret-jwt-key-change-this-in-production
+JWT_EXPIRES_IN=7d
 LOG_LEVEL=info
 ```
 
@@ -106,12 +108,23 @@ npm run db:generate
 ### 6. Run Database Migration
 
 ```bash
-npm run db:migrate
+npm run db:push
 ```
 
-When prompted, enter a migration name (e.g., "init").
+### 7. Create Admin User (Seed Database)
 
-### 7. Start the Development Server
+```bash
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/itc_db?schema=public" npm run db:seed
+```
+
+This creates an initial admin user with:
+- **Email**: `admin@itc.com`
+- **Password**: `Admin123!@#`
+- **Role**: `ADMIN`
+
+**IMPORTANT**: Change the admin password after first login!
+
+### 8. Start the Development Server
 
 ```bash
 npm run dev
@@ -137,6 +150,23 @@ Response:
 }
 ```
 
+### Get Country Codes
+
+**GET** `/api/v1/auth/country-codes`
+
+Success Response (200):
+```json
+{
+  "success": true,
+  "data": [
+    { "country": "United States", "code": "+1" },
+    { "country": "Canada", "code": "+1" },
+    { "country": "United Kingdom", "code": "+44" }
+  ],
+  "error": null
+}
+```
+
 ### Sign Up
 
 **POST** `/api/v1/auth/signup`
@@ -144,8 +174,13 @@ Response:
 Request Body:
 ```json
 {
+  "firstName": "John",
+  "lastName": "Doe",
   "email": "user@example.com",
-  "password": "SecurePass123!@#"
+  "password": "SecurePass123!@#",
+  "country": "United States",
+  "countryCode": "+1",
+  "phoneNumber": "2125551234"
 }
 ```
 
@@ -155,7 +190,12 @@ Success Response (201):
   "success": true,
   "data": {
     "id": "550e8400-e29b-41d4-a716-446655440000",
+    "firstName": "John",
+    "lastName": "Doe",
     "email": "user@example.com",
+    "country": "United States",
+    "countryCode": "+1",
+    "phoneNumber": "2125551234",
     "role": "USER"
   },
   "error": null
@@ -186,37 +226,142 @@ Error Response (409 - Conflict):
 }
 ```
 
+### Login
+
+**POST** `/api/v1/auth/login`
+
+Request Body:
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!@#"
+}
+```
+
+Success Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "user@example.com",
+      "country": "United States",
+      "countryCode": "+1",
+      "phoneNumber": "2125551234",
+      "role": "USER"
+    },
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  },
+  "error": null
+}
+```
+
+Error Response (401 - Unauthorized):
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "INVALID_CREDENTIALS",
+    "message": "Invalid email or password"
+  }
+}
+```
+
+### Get Current User Profile (Protected)
+
+**GET** `/api/v1/auth/me`
+
+Headers:
+```
+Authorization: Bearer <jwt-token>
+```
+
+Success Response (200):
+```json
+{
+  "success": true,
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "firstName": "John",
+    "lastName": "Doe",
+    "email": "user@example.com",
+    "country": "United States",
+    "countryCode": "+1",
+    "phoneNumber": "2125551234",
+    "role": "USER"
+  },
+  "error": null
+}
+```
+
+Error Response (401 - Unauthorized):
+```json
+{
+  "success": false,
+  "data": null,
+  "error": {
+    "code": "AUTH_FAILED",
+    "message": "Authentication failed"
+  }
+}
+```
+
+## User Roles
+
+The system supports two user roles:
+
+- **USER**: Regular users created via the signup endpoint
+- **ADMIN**: Administrators created via the database seed script
+
+### Creating Admin Users
+
+Admin users are created using the database seed script:
+
+```bash
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/itc_db?schema=public" npm run db:seed
+```
+
+Default admin credentials:
+- Email: `admin@itc.com`
+- Password: `Admin123!@#`
+
+**IMPORTANT**: Change the admin password immediately after first login!
+
 ## Password Policy
 
 The signup endpoint enforces strict password requirements:
 
-- Minimum 12 characters
+- Minimum 8 characters
 - At least one uppercase letter (A-Z)
 - At least one lowercase letter (a-z)
 - At least one number (0-9)
 - At least one special character (!@#$%^&*()_+-=[]{}; ':"\\|,.<>/?)
-- Cannot contain common passwords:
-  - password123
-  - qwerty123
-  - admin123
-  - letmein
-  - welcome123
+- Cannot contain common passwords (password123, qwerty123, admin123, etc.)
 
-## Email Handling
+## Validation Rules
 
-- Emails are automatically normalized (trimmed and lowercased)
-- Uniqueness check is case-insensitive
-- Maximum length: 255 characters
+- **Email**: Valid email format, automatically normalized (trimmed and lowercased)
+- **First Name**: Letters, spaces, hyphens, and apostrophes only
+- **Last Name**: Letters, spaces, hyphens, and apostrophes only
+- **Phone Number**: Digits only (no spaces or special characters)
+- **Country**: Must be from the list of supported countries
+- **Country Code**: Must match the selected country
 
 ## Security Features
 
 - **Helmet**: Sets secure HTTP headers
 - **CORS**: Configurable cross-origin resource sharing
 - **Password Hashing**: bcrypt with 12 rounds (configurable)
+- **JWT Authentication**: Stateless authentication with 7-day token expiration
 - **Input Validation**: Zod schemas for all requests
 - **Error Handling**: Centralized error handling with no sensitive data exposure
 - **Logging**: Structured logging with Pino (no passwords or sensitive data logged)
 - **Request Size Limits**: 10MB limit for JSON and URL-encoded payloads
+- **Generic Error Messages**: Prevents email enumeration attacks on login
 
 ## Available Scripts
 
@@ -227,6 +372,7 @@ npm start            # Start production server
 npm run db:generate  # Generate Prisma client
 npm run db:migrate   # Run database migrations
 npm run db:push      # Push schema changes without migration
+npm run db:seed      # Seed database with initial admin user
 npm run db:studio    # Open Prisma Studio (database GUI)
 npm run lint         # Run ESLint
 npm run format       # Format code with Prettier
@@ -293,6 +439,8 @@ http POST :3000/api/v1/auth/signup \
 | `PORT` | Server port | `3000` | No |
 | `DATABASE_URL` | PostgreSQL connection URL | - | Yes |
 | `BCRYPT_ROUNDS` | bcrypt hashing rounds | `12` | No |
+| `JWT_SECRET` | Secret key for JWT signing | - | Yes |
+| `JWT_EXPIRES_IN` | JWT token expiration time | `7d` | No |
 | `LOG_LEVEL` | Logging level | `info` | No |
 
 ## Error Codes
@@ -301,6 +449,10 @@ http POST :3000/api/v1/auth/signup \
 |------|--------|-------------|
 | `VALIDATION_ERROR` | 400 | Request validation failed |
 | `INVALID_PASSWORD` | 400 | Password doesn't meet requirements |
+| `INVALID_CREDENTIALS` | 401 | Invalid email or password |
+| `AUTH_FAILED` | 401 | Authentication failed (missing/invalid token) |
+| `INVALID_TOKEN` | 401 | JWT token is invalid or expired |
+| `USER_NOT_FOUND` | 404 | User not found |
 | `EMAIL_ALREADY_EXISTS` | 409 | Email is already registered |
 | `NOT_FOUND` | 404 | Route not found |
 | `INTERNAL_SERVER_ERROR` | 500 | Unexpected server error |
