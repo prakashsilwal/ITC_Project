@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CMS Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Login Section -->
+        <div id="login-section" class="section">
+            <div class="container">
+                <h1>CMS Login</h1>
+                <div class="card">
+                    <input type="email" id="login-email" placeholder="Email" value="testcms@example.com">
+                    <input type="password" id="login-password" placeholder="Password" value="MyStr0ng!P@ssw0rd2024">
+                    <button onclick="login()" class="btn btn-primary">Login</button>
+                    <p id="login-error" class="error"></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Dashboard -->
+        <div id="dashboard-section" class="section hidden">
+            <div class="container">
+                <div class="header">
+                    <h1>CMS Dashboard</h1>
+                    <div class="user-info">
+                        <span id="user-name"></span>
+                        <button onclick="logout()" class="btn btn-secondary">Logout</button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="switchTab('galleries')">Galleries</button>
+                    <button class="tab-btn" onclick="switchTab('videos')">Videos</button>
+                    <button class="tab-btn" onclick="switchTab('photos')">Photos</button>
+                </div>
+
+                <!-- Galleries Tab -->
+                <div id="galleries-tab" class="tab-content active">
+                    <h2>Galleries</h2>
+
+                    <!-- Create Gallery Form -->
+                    <div class="card">
+                        <h3>Create New Gallery</h3>
+                        <input type="text" id="gallery-title" placeholder="Gallery Title">
+                        <textarea id="gallery-description" placeholder="Description (optional)"></textarea>
+                        <input type="file" id="gallery-images" multiple accept="image/*">
+                        <button onclick="createGallery()" class="btn btn-primary">Create Gallery</button>
+                    </div>
+
+                    <!-- Gallery List -->
+                    <div class="card">
+                        <h3>All Galleries</h3>
+                        <button onclick="loadGalleries()" class="btn btn-secondary">Refresh</button>
+                        <div id="galleries-list" class="items-list"></div>
+                    </div>
+                </div>
+
+                <!-- Videos Tab -->
+                <div id="videos-tab" class="tab-content">
+                    <h2>Videos</h2>
+
+                    <!-- Create Video Form -->
+                    <div class="card">
+                        <h3>Add New Video</h3>
+                        <input type="text" id="video-title" placeholder="Video Title">
+                        <textarea id="video-description" placeholder="Description (optional)"></textarea>
+                        <input type="url" id="video-url" placeholder="YouTube URL">
+                        <input type="url" id="video-thumbnail" placeholder="Thumbnail URL (optional)">
+                        <button onclick="createVideo()" class="btn btn-primary">Add Video</button>
+                    </div>
+
+                    <!-- Video List -->
+                    <div class="card">
+                        <h3>All Videos</h3>
+                        <button onclick="loadVideos()" class="btn btn-secondary">Refresh</button>
+                        <div id="videos-list" class="items-list"></div>
+                    </div>
+                </div>
+
+                <!-- Photos Tab -->
+                <div id="photos-tab" class="tab-content">
+                    <h2>Photos</h2>
+
+                    <!-- Upload Photos Form -->
+                    <div class="card">
+                        <h3>Upload Photos</h3>
+                        <input type="file" id="photos-files" multiple accept="image/*">
+                        <div id="photos-metadata"></div>
+                        <button onclick="uploadPhotos()" class="btn btn-primary">Upload Photos</button>
+                    </div>
+
+                    <!-- Photos List -->
+                    <div class="card">
+                        <h3>All Photos</h3>
+                        <button onclick="loadPhotos()" class="btn btn-secondary">Refresh</button>
+                        <div id="photos-list" class="items-list"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modals -->
+    <div id="edit-gallery-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Edit Gallery</h3>
+            <input type="hidden" id="edit-gallery-id">
+            <input type="text" id="edit-gallery-title" placeholder="Gallery Title">
+            <textarea id="edit-gallery-description" placeholder="Description"></textarea>
+            <input type="file" id="edit-gallery-images" multiple accept="image/*">
+            <div class="modal-actions">
+                <button onclick="updateGallery()" class="btn btn-primary">Update</button>
+                <button onclick="closeModal('edit-gallery-modal')" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-video-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Edit Video</h3>
+            <input type="hidden" id="edit-video-id">
+            <input type="text" id="edit-video-title" placeholder="Video Title">
+            <textarea id="edit-video-description" placeholder="Description"></textarea>
+            <input type="url" id="edit-video-url" placeholder="YouTube URL">
+            <input type="url" id="edit-video-thumbnail" placeholder="Thumbnail URL">
+            <div class="modal-actions">
+                <button onclick="updateVideo()" class="btn btn-primary">Update</button>
+                <button onclick="closeModal('edit-video-modal')" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="edit-photo-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Edit Photo</h3>
+            <input type="hidden" id="edit-photo-id">
+            <input type="text" id="edit-photo-title" placeholder="Photo Title">
+            <textarea id="edit-photo-description" placeholder="Description"></textarea>
+            <div class="modal-actions">
+                <button onclick="updatePhoto()" class="btn btn-primary">Update</button>
+                <button onclick="closeModal('edit-photo-modal')" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

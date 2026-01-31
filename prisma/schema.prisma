@@ -24,7 +24,71 @@ model User {
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
+  galleries    Gallery[]
+  videos       Video[]
+  photos       Photo[]
+
   @@map("users")
   @@index([email])
   @@index([phoneNumber])
+}
+
+model Gallery {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  images      Image[]
+  uploadedBy  String   @map("uploaded_by")
+  uploader    User     @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("galleries")
+  @@index([uploadedBy])
+}
+
+model Image {
+  id         String   @id @default(uuid())
+  fileName   String   @map("file_name")
+  filePath   String   @map("file_path")
+  fileSize   Int      @map("file_size")
+  mimeType   String   @map("mime_type")
+  galleryId  String   @map("gallery_id")
+  gallery    Gallery  @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@map("images")
+  @@index([galleryId])
+}
+
+model Video {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  youtubeUrl  String   @map("youtube_url")
+  thumbnailUrl String? @map("thumbnail_url")
+  uploadedBy  String   @map("uploaded_by")
+  uploader    User     @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("videos")
+  @@index([uploadedBy])
+}
+
+model Photo {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  fileName    String   @map("file_name")
+  filePath    String   @map("file_path")
+  fileSize    Int      @map("file_size")
+  mimeType    String   @map("mime_type")
+  uploadedBy  String   @map("uploaded_by")
+  uploader    User     @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("photos")
+  @@index([uploadedBy])
 }
